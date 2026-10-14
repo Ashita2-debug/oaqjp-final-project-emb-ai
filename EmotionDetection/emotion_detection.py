@@ -2,18 +2,40 @@ import requests
 import json
 
 def emotion_detector(text_to_analyze):
-    # Watson NLP Emotion Predict service URL
+    # Check if the input text is empty or blank
+    if not text_to_analyze.strip():
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
+
+    # URL for the Watson NLP Emotion Predict service
     url = 'https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
     
     # Headers required for the API request
     header = {"grpc-metadata-mm-model-id": "watson_ru_emotion_stock_model_id"}
     
-    # Payload containing the text
+    # Payload with the text to analyze
     input_json = { "raw_document": { "text": text_to_analyze } }
     
-    # Send POST request
+    # Send POST request to Watson NLP API
     response = requests.post(url, json=input_json, headers=header)
     
+    # Check if status code is 400 (Bad Request / invalid input)
+    if response.status_code == 400:
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
+
     # Parse JSON response
     formatted_response = json.loads(response.text)
     
@@ -25,7 +47,7 @@ def emotion_detector(text_to_analyze):
     joy_score = emotions['joy']
     sadness_score = emotions['sadness']
     
-    # Find dominant emotion
+    # Find the dominant emotion
     emotion_scores = {
         'anger': anger_score,
         'disgust': disgust_score,
@@ -35,7 +57,7 @@ def emotion_detector(text_to_analyze):
     }
     dominant_emotion = max(emotion_scores, key=emotion_scores.get)
     
-    # Return result dictionary
+    # Return formatted dictionary
     return {
         'anger': anger_score,
         'disgust': disgust_score,
@@ -44,3 +66,4 @@ def emotion_detector(text_to_analyze):
         'sadness': sadness_score,
         'dominant_emotion': dominant_emotion
     }
+   
